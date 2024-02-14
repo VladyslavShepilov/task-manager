@@ -1,3 +1,11 @@
 from django.contrib import admin
 
-# Register your models here.
+from dashboard.models import (
+    Employee,
+    Team,
+    Task
+)
+
+admin.site.register(Employee)
+admin.site.register(Team)
+admin.site.register(Task)
