@@ -28,3 +28,27 @@ def index(request: HttpRequest):
     }
 
     return render(request, "dashboard/index.html", context=context)
+
+
+class TeamListView(LoginRequiredMixin, generic.ListView):
+    pass
+
+
+class TeamDetailView(LoginRequiredMixin, generic.DetailView):
+    pass
+
+
+class EmployeeListView(LoginRequiredMixin, generic.ListView):
+    pass
+
+
+class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
+    pass
+
+
+class TaskListView(LoginRequiredMixin, generic.ListView):
+    pass
+
+
+class TaskDetailView(LoginRequiredMixin, generic.DetailView):
+    pass
