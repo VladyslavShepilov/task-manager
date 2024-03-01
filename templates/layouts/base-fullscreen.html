@@ -22,7 +22,7 @@ Coded by www.creative-tim.com
   <link rel="canonical" href="https://appseed.us/ui-kit/soft-ui-design-system"/>
   
   <title>
-    Django Soft UI Design System - {% block title %}{% endblock %} | AppSeed
+    Task manager - {% block title %}{% endblock %} | AppSeed
   </title>
 
   <!--     Fonts and icons     -->
@@ -40,17 +40,10 @@ Coded by www.creative-tim.com
   {% block stylesheets %}{% endblock stylesheets %}
 
 </head>
-
 <body class="{% block body_class %}{% endblock body_class %}">
 
-    {% include "includes/navigation.html" %}
-
     {% block content %}{% endblock content %}
-
-    {% block pagination %}{% endblock %}
   
-    {% include "includes/footer.html" %}
-
     {% include "includes/scripts.html" %}
 
   <!-- Specific JS goes HERE --> 

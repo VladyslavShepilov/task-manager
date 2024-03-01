@@ -8,11 +8,11 @@ from django.utils import timezone
 class Employee(AbstractUser):
 
     class Role(models.TextChoices):
-        DEV = "dev", "Developer"
-        PM = "pm", "Project Manager"
-        QA = "qa", "QA"
-        DESIGNER = "designer", "Designer"
-        DEVOPS = "devops", "DevOps"
+        DEV = "Developer", "dev"
+        PM = "Project Manager", "pm",
+        QA = "QA", "qa"
+        DESIGNER = "Designer", "designer"
+        DEVOPS = "DevOps", "devops"
 
     role = models.CharField(
         max_length=20,
@@ -27,10 +27,10 @@ class Employee(AbstractUser):
 class Task(models.Model):
     class Type(models.TextChoices):
         BUG = "bug", "Bug"
-        NEW_FEATURE = "new_feature", "New feature"
-        CHANGE = "change", "Change"
-        REFACTOR = "refactor", "Refactor"
-        QA = "qa", "QA"
+        NEW_FEATURE = "New feature", "new_feature"
+        CHANGE = "Change", "change"
+        REFACTOR = "Refactor", "refactor"
+        QA = "QA", "qa"
 
     class Priority(models.TextChoices):
         LOW = "low", "Low"
@@ -75,6 +75,9 @@ class Task(models.Model):
     class Meta:
         ordering = ["-priority"]
 
+    def __str__(self):
+        return str(self.name)
+
 
 class Team(models.Model):
     name = models.CharField(max_length=20)
@@ -93,8 +96,11 @@ class Team(models.Model):
             created_at__lt=today
         )
         total_story_points = tasks_this_month.aggregate(story_point=Sum("story_points"))
-        self.productivity = total_story_points if total_story_points is not None else 0
+        self.productivity = total_story_points["story_point"] if total_story_points is not None else 0
         self.save()
+
+    def __str__(self):
+        return str(self.name)
 
 
 class VisitCounter(models.Model):

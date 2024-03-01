@@ -1,9 +1,13 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Prefetch
 from django.http import HttpResponseRedirect, HttpRequest
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .forms import EmployeeForm, LoginForm
+from django.contrib.auth.views import LoginView, LogoutView
 
 
 from .models import (
@@ -14,6 +18,7 @@ from .models import (
 )
 
 
+@login_required
 def index(request: HttpRequest):
     num_employers = Employee.objects.count()
     num_teams = Team.objects.count()
@@ -30,12 +35,29 @@ def index(request: HttpRequest):
     return render(request, "dashboard/index.html", context=context)
 
 
+class EmployeeCreateView(generic.CreateView):
+    model = Employee
+    form_class = EmployeeForm
+    template_name = "registration/register.html"
+    success_url = reverse_lazy("dashboard:index")
+
+
+class EmployeeUpdateView(generic.CreateView):
+    pass
+
+
+class EmployeeLoginView(LoginView):
+    template_name = "registration/login.html"
+    form_class = LoginForm
+    success_url = reverse_lazy("dashboard:index")
+
+
 class TeamListView(LoginRequiredMixin, generic.ListView):
     pass
 
 
 class TeamDetailView(LoginRequiredMixin, generic.DetailView):
-    pass
+    model = Team
 
 
 class EmployeeListView(LoginRequiredMixin, generic.ListView):
@@ -43,7 +65,41 @@ class EmployeeListView(LoginRequiredMixin, generic.ListView):
 
 
 class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
-    pass
+    model = Employee
+    context_object_name = "employee"
+    template_name = "dashboard/employee-detail.html"
+    paginate_by = 5
+
+    def get_queryset(self):
+        queryset = Employee.objects.prefetch_related(
+            Prefetch(
+                "tasks_assigned",
+                queryset=Task.objects.only(
+                    "name",
+                    "type",
+                    "story_points",
+                    "is_completed"
+                ),
+                to_attr="prefetched_tasks"
+            )
+        )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tasks = self.object.prefetched_tasks
+        paginator = Paginator(tasks, self.paginate_by)
+        page = self.request.GET.get("page")
+
+        try:
+            tasks = paginator.page(page)
+        except PageNotAnInteger:
+            tasks = paginator.page(1)
+        except EmptyPage:
+            tasks = paginator.page(paginator.num_pages)
+
+        context["task_pagination"] = tasks
+        return context
 
 
 class TaskListView(LoginRequiredMixin, generic.ListView):

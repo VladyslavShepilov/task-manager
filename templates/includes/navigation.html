@@ -25,8 +25,8 @@
                   <ul class="dropdown-menu dropdown-menu-animation dropdown-lg mt-0 mt-lg-3 p-3 border-radius-lg" aria-labelledby="dropdownMenuDocs">
                     <div class="d-none d-lg-block">
                       <li class="nav-item ">
-                        <a target="_blank" class="dropdown-item py-2 ps-3 border-radius-md"
-                          href="https://appseed.us/support">
+                        <a class="dropdown-item py-2 ps-3 border-radius-md"
+                          href="{% url 'dashboard:employee-detail' pk=user.id %}">
                           <div class="d-flex">
                             <div class="icon h-10 me-3 d-flex mt-1">
                               <svg class="text-secondary" width="16px" height="16px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -52,9 +52,9 @@
                       </li>
 
                       <li class="nav-item ">
-                        <a target="_blank"
+                        <a
                           class="dropdown-item py-2 ps-3 border-radius-md" 
-                          href="https://bit.ly/2NiYjQA">
+                          href="{% url 'dashboard:employee-detail' pk=user.id %}">
                           <div class="d-flex">
                             <div class="icon h-10 me-3 d-flex mt-1">
                               <svg class="text-secondary" width="16px" height="16px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -283,24 +283,15 @@
                 </ul>
               </li>
               <!-- End new block -->
-
-
-
-
-
-
-
-
-
-
-
-
-                <li class="nav-item ms-lg-auto">
-                  <a class="nav-link nav-link-icon me-2" href="">
+                <form id="logout-form" method="post" action="{% url 'logout' %}" class="d-none">
+                  {% csrf_token %}
+                </form>
+              <li class="nav-item ms-lg-auto">
+                <a class="nav-link nav-link-icon me-2" href="#" onclick="document.getElementById('logout-form').submit()">
                     <i class="fa fa-sign-out me-1"></i>
                     <p class="d-inline text-sm z-index-1 font-weight-bold" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">Logout</p>
-                  </a>
-                </li>
+                </a>
+              </li>
               </ul>
             </div>
           </div>
