@@ -35,6 +35,12 @@ def index(request: HttpRequest):
     return render(request, "dashboard/index.html", context=context)
 
 
+class EmployeeLoginView(LoginView):
+    template_name = "registration/login.html"
+    form_class = LoginForm
+    success_url = reverse_lazy("dashboard:index")
+
+
 class EmployeeCreateView(generic.CreateView):
     model = Employee
     form_class = EmployeeForm
@@ -46,28 +52,15 @@ class EmployeeUpdateView(generic.CreateView):
     pass
 
 
-class EmployeeLoginView(LoginView):
-    template_name = "registration/login.html"
-    form_class = LoginForm
-    success_url = reverse_lazy("dashboard:index")
-
-
-class TeamListView(LoginRequiredMixin, generic.ListView):
-    pass
-
-
-class TeamDetailView(LoginRequiredMixin, generic.DetailView):
-    model = Team
-
-
 class EmployeeListView(LoginRequiredMixin, generic.ListView):
-    pass
+    model = Employee
+    context_object_name = "employee_list"
+    paginate_by = 5
 
 
 class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
     model = Employee
     context_object_name = "employee"
-    template_name = "dashboard/employee-detail.html"
     paginate_by = 5
 
     def get_queryset(self):
@@ -100,6 +93,14 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
 
         context["task_pagination"] = tasks
         return context
+
+
+class TeamListView(LoginRequiredMixin, generic.ListView):
+    pass
+
+
+class TeamDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Team
 
 
 class TaskListView(LoginRequiredMixin, generic.ListView):
