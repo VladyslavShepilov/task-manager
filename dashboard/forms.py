@@ -20,7 +20,7 @@ class LoginForm(forms.Form):
         ))
 
 
-class EmployeeForm(UserCreationForm):
+class EmployeeCreateForm(UserCreationForm):
     username = forms.CharField(
         label="Username",
         widget=forms.TextInput(
@@ -72,3 +72,17 @@ class EmployeeForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Employee
         fields = UserCreationForm.Meta.fields + ("role", "team")
+
+
+class EmployeeSearchForm(forms.Form):
+    username = forms.CharField(
+        max_length=255,
+        required=False,
+        label="",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search",
+                "autocomplete": "off"
+            }
+        ),
+    )

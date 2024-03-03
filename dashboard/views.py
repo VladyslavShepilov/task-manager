@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import EmployeeForm, LoginForm
+from .forms import LoginForm, EmployeeCreateForm, EmployeeSearchForm
 from django.contrib.auth.views import LoginView, LogoutView
 
 
@@ -43,7 +43,7 @@ class EmployeeLoginView(LoginView):
 
 class EmployeeCreateView(generic.CreateView):
     model = Employee
-    form_class = EmployeeForm
+    form_class = EmployeeCreateForm
     template_name = "registration/register.html"
     success_url = reverse_lazy("dashboard:index")
 
@@ -55,7 +55,22 @@ class EmployeeUpdateView(generic.CreateView):
 class EmployeeListView(LoginRequiredMixin, generic.ListView):
     model = Employee
     context_object_name = "employee_list"
-    paginate_by = 5
+    paginate_by = 1
+
+    def get_queryset(self):
+        queryset = Employee.objects.select_related("team")
+        username = self.request.GET.get("username")
+        if username:
+            return queryset.filter(username__icontains=username)
+        return queryset
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        username = self.request.GET.get("username", "")
+        context["search_form"] = EmployeeSearchForm(
+            initial={"username": username}
+        )
+        return context
 
 
 class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
