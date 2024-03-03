@@ -55,7 +55,7 @@ class EmployeeUpdateView(generic.CreateView):
 class EmployeeListView(LoginRequiredMixin, generic.ListView):
     model = Employee
     context_object_name = "employee_list"
-    paginate_by = 1
+    paginate_by = 5
 
     def get_queryset(self):
         queryset = Employee.objects.select_related("team")
