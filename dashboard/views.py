@@ -99,7 +99,9 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
 
 
 class TeamListView(LoginRequiredMixin, generic.ListView):
-    pass
+    model = Team
+    context_object_name = "team-list"
+    paginate_by = 10
 
 
 class TeamDetailView(LoginRequiredMixin, generic.DetailView):
@@ -107,8 +109,17 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
 
 
 class TaskListView(LoginRequiredMixin, generic.ListView):
-    pass
+    model = Task
+
+    def get_queryset(self):
+        assigned = bool(self.request.GET.get("assigned"))
+        if assigned:
+            return Task.objects.filter(assigned_to__isnull=True)
+        return Task.objects.filter(
+            assigned_to__isnull=False,
+            is_completed=False
+        )
 
 
 class TaskDetailView(LoginRequiredMixin, generic.DetailView):
-    pass
+    model = Task
