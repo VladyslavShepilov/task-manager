@@ -78,24 +78,12 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
     context_object_name = "employee"
     paginate_by = 5
 
-    def get_queryset(self):
-        queryset = Employee.objects.prefetch_related(
-            Prefetch(
-                "tasks_assigned",
-                queryset=Task.objects.only(
-                    "name",
-                    "type",
-                    "story_points",
-                    "is_completed"
-                ),
-                to_attr="prefetched_tasks"
-            )
-        )
-        return queryset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tasks = self.object.prefetched_tasks
+
+        tasks = self.object.tasks_assigned.all()
+        print(tasks)
+
         paginator = Paginator(tasks, self.paginate_by)
         page = self.request.GET.get("page")
 
