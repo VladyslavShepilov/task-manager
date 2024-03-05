@@ -2,11 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Prefetch
 from django.http import HttpResponseRedirect, HttpRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, EmployeeCreateForm, EmployeeSearchForm
+from .forms import LoginForm, EmployeeCreateForm, SearchForm
 from django.contrib.auth.views import LoginView, LogoutView
 
 
@@ -35,6 +35,20 @@ def index(request: HttpRequest):
     return render(request, "dashboard/index.html", context=context)
 
 
+@login_required
+def toggle_assign_to_team(request, pk):
+    employee = Employee.objects.get(id=request.user.id)
+    team = get_object_or_404(Team, id=pk)
+
+    if employee.team == team:
+        employee.team = None
+    else:
+        employee.team = team
+    employee.save()
+
+    return HttpResponseRedirect(reverse_lazy("dashboard:team-detail", args=[pk]))
+
+
 class EmployeeLoginView(LoginView):
     template_name = "registration/login.html"
     form_class = LoginForm
@@ -59,16 +73,16 @@ class EmployeeListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         queryset = Employee.objects.select_related("team")
-        username = self.request.GET.get("username")
+        username = self.request.GET.get("search_key")
         if username:
             return queryset.filter(username__icontains=username)
         return queryset
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        username = self.request.GET.get("username", "")
-        context["search_form"] = EmployeeSearchForm(
-            initial={"username": username}
+        username = self.request.GET.get("search_key", "")
+        context["search_form"] = SearchForm(
+            initial={"search_key": username}
         )
         return context
 
@@ -82,7 +96,6 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
         context = super().get_context_data(**kwargs)
 
         tasks = self.object.tasks_assigned.all()
-        print(tasks)
 
         paginator = Paginator(tasks, self.paginate_by)
         page = self.request.GET.get("page")
@@ -100,16 +113,51 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
 
 class TeamListView(LoginRequiredMixin, generic.ListView):
     model = Team
-    context_object_name = "team-list"
+    context_object_name = "team_list"
     paginate_by = 10
+
+    def get_queryset(self):
+        search_key = self.request.GET.get("search_key", "")
+        if search_key:
+            return Team.objects.filter(name__icontains=search_key)
+        return Team.objects.all()
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_key = self.request.GET.get("search_key", "")
+        context["search_form"] = SearchForm(
+            initial={"search_key": search_key}
+        )
+        return context
 
 
 class TeamDetailView(LoginRequiredMixin, generic.DetailView):
     model = Team
+    paginate_by = 5
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        employees = self.object.members.all().order_by("role")
+
+        paginator = Paginator(employees, self.paginate_by)
+        page = self.request.GET.get("page")
+
+        try:
+            employees = paginator.page(page)
+        except PageNotAnInteger:
+            employees = paginator.page(1)
+        except EmptyPage:
+            employees = paginator.page(paginator.num_pages)
+
+        context["employee_pagination"] = employees
+        print(context["employee_pagination"])
+        return context
 
 
 class TaskListView(LoginRequiredMixin, generic.ListView):
     model = Task
+    paginate_by = 15
 
     def get_queryset(self):
         assigned = bool(self.request.GET.get("assigned"))
@@ -123,3 +171,4 @@ class TaskListView(LoginRequiredMixin, generic.ListView):
 
 class TaskDetailView(LoginRequiredMixin, generic.DetailView):
     model = Task
+

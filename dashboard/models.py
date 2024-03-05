@@ -21,7 +21,7 @@ class Employee(AbstractUser):
     date_joined = models.DateField(
         auto_now_add=True
     )
-    team = models.ForeignKey("Team", related_name="members", null=True, on_delete=models.SET_NULL)
+    team = models.ForeignKey("Team", related_name="members", null=True, blank=True, on_delete=models.SET_NULL)
 
 
 class Task(models.Model):
@@ -86,6 +86,9 @@ class Team(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
+    class Meta:
+        ordering = ["-productivity"]
 
     def calculate_productivity(self):
         today = timezone.datetime.today()

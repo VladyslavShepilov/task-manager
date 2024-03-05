@@ -1,10 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'layouts/base-presentation.html' %}
 
-</body>
-</html>
+{% block title %} Task manager {% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} index-page {% endblock body_class %}
+
+{% block content %}
+  <header class="header-2 {% if employee_pagination %}text-center{% endif %}">
+    <div class="page-header section-height-75 relative" style="background-image: url('{{ ASSETS_ROOT }}/img/curved-images/curved.jpg')">
+      <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+          <div class="col-lg-7 text-center">
+            <h1 class="text-white pt-3 mt-n5">
+              <a class="text-white">{{ team.name }}</a>
+            </h1>
+            <p>
+            {% if user.team.id == team.id %}
+              <a href="{% url 'dashboard:toggle-team-assign' pk=team.id %}" class="btn btn-danger link-to-page">
+                Delete me from this team
+              </a>
+            {% else %}
+              <a href="{% url 'dashboard:toggle-team-assign' pk=team.id %}" class="btn btn-success link-to-page">
+                Assign me to this team
+              </a>
+            {% endif %}
+            </p>
+            <p class="lead text-white mt-3">
+                Productivity: {{ team.productivity }}
+            </p>
+            <p class="lead text-white mt-3">
+                Members: {{ team.members.count }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {% if employee_pagination %}
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-9 z-index-2 border-radius-xl mt-n20 mx-auto py-3 blur shadow-blur">
+              <section class="pt-3 pb-4" id="employee-list">
+                <h3 class="text-white">Team members</h3>
+                <table class="table table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col">N</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Date Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for employee in employee_pagination %}
+                      <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td><a href="{% url 'dashboard:employee-detail' pk=employee.pk %}">{{ employee.username }}</a></td>
+                        <td>{{ employee.role }}</td>
+                        <td>{{ employee.date_joined }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </section>
+
+              <div class="pagination mt-3">
+                <span class="step-links">
+                  {% if employee_pagination.has_previous %}
+                    <a href="?page={{ employee_pagination.previous_page_number }}"> << </a>
+                  {% endif %}
+                  <span class="current">
+                    {{ employee_pagination.number }} of {{ employee_pagination.paginator.num_pages }}.
+                  </span>
+                  {% if employee_pagination.has_next %}
+                    <a href="?page={{ employee_pagination.next_page_number }}"> >> </a>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+{% endblock %}

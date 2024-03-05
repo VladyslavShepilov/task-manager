@@ -74,8 +74,8 @@ class EmployeeCreateForm(UserCreationForm):
         fields = UserCreationForm.Meta.fields + ("role", "team")
 
 
-class EmployeeSearchForm(forms.Form):
-    username = forms.CharField(
+class SearchForm(forms.Form):
+    search_key = forms.CharField(
         max_length=255,
         required=False,
         label="",
