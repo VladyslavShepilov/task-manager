@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.http import HttpResponseRedirect, HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -155,20 +155,41 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class TaskListView(LoginRequiredMixin, generic.ListView):
+class TaskListView(generic.ListView):
     model = Task
     paginate_by = 15
 
     def get_queryset(self):
-        assigned = bool(self.request.GET.get("assigned"))
-        if assigned:
-            return Task.objects.filter(assigned_to__isnull=True)
-        return Task.objects.filter(
-            assigned_to__isnull=False,
-            is_completed=False
+        ordering = self.request.GET.get("ordering", "-priority")
+        assigned = self.kwargs.get("assigned", "")
+        queryset = Task.objects.values("name", "priority", "story_points", "deadline", "pk").distinct()
+
+        if assigned.lower() == 'true':
+            queryset = queryset.filter(assigned_to__isnull=False)
+            print("Get assigned!!!")
+        else:
+            queryset = queryset.filter(
+                Q(assigned_to__isnull=True) & Q(is_completed=False)
+            )
+            print("Get signed!!!")
+        search_key = self.request.GET.get("search_key", "")
+        if search_key:
+            queryset = queryset.filter(name__icontains=search_key)
+
+        return queryset.order_by(ordering)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_key = self.request.GET.get("search_key", "")
+        context["search_form"] = SearchForm(
+            initial={"search_key": search_key}
         )
+        context["assigned"] = self.kwargs.get("assigned", "False")
+        context["current_order"] = self.request.GET.get("ordering", "-priority")
+        return context
 
 
 class TaskDetailView(LoginRequiredMixin, generic.DetailView):
     model = Task
+
 
