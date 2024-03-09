@@ -1,10 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'layouts/base-presentation.html' %}
 
-</body>
-</html>
+{% block title %} Task manager {% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} index-page {% endblock body_class %}
+
+{% block content %}
+  <header class="header-2 {% if employee_pagination %}text-center{% endif %}">
+    <div class="page-header section-height-75 relative" style="background-image: url('{{ ASSETS_ROOT }}/img/curved-images/curved.jpg')">
+      <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+          <div class="col-lg-7 text-center">
+            <h1 class="text-white pt-3 mt-n5">
+              <a class="text-white">
+                {{ task.name }}
+                {% if task.is_completed %}
+                  ✅
+                {% else %}
+                  ❌
+                {% endif %}
+              </a>
+            </h1>
+            <p>
+            {% if task in user.tasks_assigned.all %}
+              <a href="{% url 'dashboard:toggle-task-assign' pk=task.id %}" class="btn btn-danger link-to-page">
+                Unassign this task from me
+              </a>
+            {% else %}
+              <a href="{% url 'dashboard:toggle-task-assign' pk=task.id %}" class="btn btn-success link-to-page">
+                Assign this task to me
+              </a>
+            {% endif %}
+            </p>
+            <p>
+              {% if user in task.assigned_to.all %}
+                {% if not task.is_completed %}
+                  <a href="{% url 'dashboard:toggle-task-done' pk=task.id %}" class="btn btn-success link-to-page">
+                    Mark as done
+                  </a>
+                {% else %}
+                  <a href="{% url 'dashboard:toggle-task-done' pk=task.id %}" class="btn btn-danger link-to-page">
+                    Mark as In Progress
+                  </a>
+                {% endif %}
+              {% endif %}
+            <p class="lead text-white mt-3">
+              Story Points: {{ task.story_points }}
+            </p>
+            <p class="lead text-white mt-3">
+                Assigned to: {{ task.assigned_to.count }}
+            </p>
+            <h2>Description</h2>
+            <div class="container border border-2 border-primary">
+              <p>{{ task.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if task.assigned_to %}
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-9 z-index-2 border-radius-xl mt-n20 mx-auto py-3 blur shadow-blur">
+              <section class="pt-3 pb-4" id="employee-list">
+                <h3 class="text-white">Assigned to</h3>
+                <table class="table table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col">N</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for employee in task.assigned_to.all %}
+                      <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td><a href="{% url 'dashboard:employee-detail' pk=employee.pk %}">{{ employee.username }}</a></td>
+                        <td>{{ employee.role }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+{% endblock %}

@@ -1,6 +1,7 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from .models import Employee, Team
+from .models import Employee, Team, Task
 
 
 class LoginForm(forms.Form):
@@ -72,6 +73,28 @@ class EmployeeCreateForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Employee
         fields = UserCreationForm.Meta.fields + ("role", "team")
+
+
+class TaskForm(forms.ModelForm):
+
+    def __init__(self, team=None, *args, **kwargs):
+        super(TaskForm, self).__init__(*args, **kwargs)
+        if team:
+            self.fields["assigned_to"].queryset = team.members.all()
+
+    assigned_to = forms.ModelMultipleChoiceField(
+        queryset=get_user_model().objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    type = forms.ChoiceField(
+        choices=Task.Type.choices,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = Task
+        fields = "__all__"
 
 
 class SearchForm(forms.Form):

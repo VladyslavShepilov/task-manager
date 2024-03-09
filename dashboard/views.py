@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import LoginForm, EmployeeCreateForm, SearchForm
+from .forms import LoginForm, EmployeeCreateForm, SearchForm, TaskForm
 from django.contrib.auth.views import LoginView, LogoutView
 
 
@@ -49,6 +49,30 @@ def toggle_assign_to_team(request, pk):
     return HttpResponseRedirect(reverse_lazy("dashboard:team-detail", args=[pk]))
 
 
+@login_required
+def toggle_assign_to_task(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    employee = Employee.objects.get(id=request.user.id)
+    if task in employee.tasks_assigned.all():
+        task.assigned_to.remove(employee)
+    else:
+        task.assigned_to.add(employee)
+    return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[pk]))
+
+
+@login_required
+def toggle_mark_done_task(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    employee = Employee.objects.get(id=request.user.id)
+    if employee in task.assigned_to.all():
+        if task.is_completed:
+            task.is_completed = False
+        else:
+            task.is_completed = True
+        task.save()
+    return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[pk]))
+
+
 class EmployeeLoginView(LoginView):
     template_name = "registration/login.html"
     form_class = LoginForm
@@ -60,10 +84,6 @@ class EmployeeCreateView(generic.CreateView):
     form_class = EmployeeCreateForm
     template_name = "registration/register.html"
     success_url = reverse_lazy("dashboard:index")
-
-
-class EmployeeUpdateView(generic.CreateView):
-    pass
 
 
 class EmployeeListView(LoginRequiredMixin, generic.ListView):
@@ -155,7 +175,7 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class TaskListView(generic.ListView):
+class TaskListView(LoginRequiredMixin, generic.ListView):
     model = Task
     paginate_by = 15
 
@@ -166,12 +186,10 @@ class TaskListView(generic.ListView):
 
         if assigned.lower() == 'true':
             queryset = queryset.filter(assigned_to__isnull=False)
-            print("Get assigned!!!")
         else:
             queryset = queryset.filter(
                 Q(assigned_to__isnull=True) & Q(is_completed=False)
             )
-            print("Get signed!!!")
         search_key = self.request.GET.get("search_key", "")
         if search_key:
             queryset = queryset.filter(name__icontains=search_key)
@@ -191,5 +209,21 @@ class TaskListView(generic.ListView):
 
 class TaskDetailView(LoginRequiredMixin, generic.DetailView):
     model = Task
+    queryset = Task.objects.prefetch_related("assigned_to")
 
 
+class TaskCreateView(LoginRequiredMixin, generic.CreateView):
+    model = Task
+    form_class = TaskForm
+    success_url = ""
+
+
+class TaskUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = Task
+    form_class = TaskForm
+    success_url = ""
+
+
+class TaskDeleteView(LoginRequiredMixin, generic.DetailView):
+    model = Task
+    success_url = ""

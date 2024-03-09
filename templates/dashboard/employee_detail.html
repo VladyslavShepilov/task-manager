@@ -52,7 +52,7 @@
               {% for task in task_pagination %}
                 <tr>
                   <th scope="row">{{ forloop.counter }}</th>
-                  <td><a href="">{{ task.name }}</a></td>
+                  <td><a href="{% url 'dashboard:task-detail' pk=task.pk %}">{{ task.name }}</a></td>
                   <td>{{ task.type }}</td>
                   <td>{{ task.story_points }}</td>
                   <td>{{ task.is_completed|yesno:"✅,❌" }}</td>
