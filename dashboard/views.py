@@ -1,9 +1,12 @@
+from datetime import datetime
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Prefetch, Q
 from django.http import HttpResponseRedirect, HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import LoginForm, EmployeeCreateForm, SearchForm, TaskForm
@@ -64,12 +67,15 @@ def toggle_assign_to_task(request, pk):
 def toggle_mark_done_task(request, pk):
     task = get_object_or_404(Task, id=pk)
     employee = Employee.objects.get(id=request.user.id)
+    team = employee.team
     if employee in task.assigned_to.all():
         if task.is_completed:
             task.is_completed = False
         else:
             task.is_completed = True
         task.save()
+    if employee.team:
+        team.calculate_productivity()
     return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[pk]))
 
 
@@ -171,7 +177,6 @@ class TeamDetailView(LoginRequiredMixin, generic.DetailView):
             employees = paginator.page(paginator.num_pages)
 
         context["employee_pagination"] = employees
-        print(context["employee_pagination"])
         return context
 
 
@@ -184,11 +189,17 @@ class TaskListView(LoginRequiredMixin, generic.ListView):
         assigned = self.kwargs.get("assigned", "")
         queryset = Task.objects.values("name", "priority", "story_points", "deadline", "pk").distinct()
 
-        if assigned.lower() == 'true':
-            queryset = queryset.filter(assigned_to__isnull=False)
-        else:
+        if assigned.lower() == "true":
+            queryset = queryset.filter(
+                Q(assigned_to__isnull=False) & Q(is_completed=False)
+            )
+        elif assigned.lower() == "false":
             queryset = queryset.filter(
                 Q(assigned_to__isnull=True) & Q(is_completed=False)
+            )
+        else:
+            queryset = queryset.filter(
+                is_completed=True
             )
         search_key = self.request.GET.get("search_key", "")
         if search_key:
@@ -215,15 +226,26 @@ class TaskDetailView(LoginRequiredMixin, generic.DetailView):
 class TaskCreateView(LoginRequiredMixin, generic.CreateView):
     model = Task
     form_class = TaskForm
-    success_url = ""
+    template_name = "dashboard/task_form.html"
+
+    def get_success_url(self):
+        return reverse("dashboard:task-detail", kwargs={"pk": self.object.pk})
 
 
 class TaskUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Task
     form_class = TaskForm
-    success_url = ""
+
+    def get_success_url(self):
+        return reverse("dashboard:task-detail", kwargs={"pk": self.object.pk})
 
 
-class TaskDeleteView(LoginRequiredMixin, generic.DetailView):
+class TaskDeleteView(LoginRequiredMixin, generic.DeleteView):
     model = Task
-    success_url = ""
+
+    def get_success_url(self):
+        return reverse(
+            "dashboard:task-list",
+            kwargs={"assigned": self.request.GET.get("assigned", "done")}
+        )
+

@@ -14104,4 +14104,23 @@ pre[class*="language-"] {
 .token.entity {
   cursor: help; }
 
+.update-task-link {
+  position: fixed;
+  top: 315px;
+  right: 130px;
+  font-size: 20px;
+  z-index: 1000;
+  color: #ffffff;
+  background-color: #FF1493;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.update-task-link:hover {
+  background-color: #C71585;
+  color: #ffffff;
+}
+
 /*# sourceMappingURL=soft-design-system.css.map */

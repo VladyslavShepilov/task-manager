@@ -2,7 +2,43 @@
 
 {% block title %} Task manager {% endblock title %}
 
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+  <style>
+#task-container {
+  position: sticky;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+#update-task-link,
+#task-form {
+  width: 150px;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+#update-task-link {
+  color: #ffffff;
+  font-size: 15px;
+  background-color: #FFFF00;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  padding: 8px 16px;
+  text-decoration: none;
+  margin-right: 10px;
+}
+
+#task-form input[type="submit"] {
+  width: 100%;
+  height: 100%;
+}
+
+  </style>
+{% endblock %}
+
+{% block javascripts %}{% endblock javascripts %}
 
 {% block body_class %} index-page {% endblock body_class %}
 
@@ -23,6 +59,14 @@
               </a>
             </h1>
             <p>
+                  <div id="task-container" class="btn">
+      <form id="task-form" action="{% url 'dashboard:task-delete' pk=task.pk %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Delete" class="btn btn-danger">
+      </form>
+
+      <a id="update-task-link" href="{% url 'dashboard:task-update' pk=task.pk %}">Update</a>
+   </div>
             {% if task in user.tasks_assigned.all %}
               <a href="{% url 'dashboard:toggle-task-assign' pk=task.id %}" class="btn btn-danger link-to-page">
                 Unassign this task from me
@@ -91,3 +135,4 @@
     </div>
   </header>
 {% endblock %}
+

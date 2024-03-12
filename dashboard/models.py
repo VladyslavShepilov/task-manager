@@ -1,7 +1,9 @@
+import datetime
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.utils import timezone
 
 
@@ -82,25 +84,26 @@ class Task(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=20)
     productivity = models.DecimalField(
+        null=True,
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+    creation_date = models.DateField(auto_now_add=True)
 
     class Meta:
         ordering = ["-productivity"]
 
     def calculate_productivity(self):
-        today = timezone.datetime.today()
-        start_of_month = today.replace(day=1)
-        tasks_this_month = Task.objects.filter(
-            assigned_to__team=self,
-            created_at__gte=start_of_month,
-            created_at__lt=today
+        tasks_done = Task.objects.filter(
+            assigned_to__in=self.members.all(),
+            is_completed=True
         )
-        total_story_points = tasks_this_month.aggregate(story_point=Sum("story_points"))
-        self.productivity = total_story_points["story_point"] if total_story_points is not None else 0
+        total_story_points = tasks_done.aggregate(story_point=Sum("story_points"))
+        productivity = total_story_points["story_point"] if total_story_points is not None else 0
+        self.productivity = productivity
         self.save()
+        return productivity
 
     def __str__(self):
         return str(self.name)

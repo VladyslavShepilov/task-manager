@@ -1,0 +1,35 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Task manager {% endblock title %}
+
+{% block stylesheets %}
+  <style>
+    .form-container {
+      max-width: 600px;
+      margin: auto;
+      margin-top: 100px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}
+  <header class="header-2">
+    <div class="page-header relative" style="background-image: url('{{ ASSETS_ROOT }}/img/curved-images/curved.jpg')">
+      <div class="form-container">
+        <h1>Delete {{ task.name }}?</h1>
+        <form action="" method="post">
+          {% csrf_token %}
+          <input type="submit" value="Yes" class="btn btn-danger">
+        </form>
+      </div>
+    </div>
+  </header>
+{% endblock %}
