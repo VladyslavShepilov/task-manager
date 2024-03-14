@@ -59,36 +59,39 @@
               </a>
             </h1>
             <p>
-                  <div id="task-container" class="btn">
-      <form id="task-form" action="{% url 'dashboard:task-delete' pk=task.pk %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="Delete" class="btn btn-danger">
-      </form>
-
-      <a id="update-task-link" href="{% url 'dashboard:task-update' pk=task.pk %}">Update</a>
-   </div>
+            <div id="task-container" class="btn">
+              <form id="task-form" action="{% url 'dashboard:task-delete' pk=task.pk %}" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Delete" class="btn btn-danger">
+              </form>
+              <a id="update-task-link" href="{% url 'dashboard:task-update' pk=task.pk %}">Update</a>
+            </div>
             {% if task in user.tasks_assigned.all %}
-              <a href="{% url 'dashboard:toggle-task-assign' pk=task.id %}" class="btn btn-danger link-to-page">
-                Unassign this task from me
-              </a>
-            {% else %}
-              <a href="{% url 'dashboard:toggle-task-assign' pk=task.id %}" class="btn btn-success link-to-page">
-                Assign this task to me
-              </a>
-            {% endif %}
-            </p>
-            <p>
-              {% if user in task.assigned_to.all %}
-                {% if not task.is_completed %}
-                  <a href="{% url 'dashboard:toggle-task-done' pk=task.id %}" class="btn btn-success link-to-page">
-                    Mark as done
-                  </a>
-                {% else %}
-                  <a href="{% url 'dashboard:toggle-task-done' pk=task.id %}" class="btn btn-danger link-to-page">
-                    Mark as In Progress
-                  </a>
-                {% endif %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="assign">
+                  <button type="submit" class="btn btn-danger">Unassign</button>
+                </form>
+              {% if not task.is_completed %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="is_completed">
+                  <button type="submit" class="btn btn-success">Mark Done</button>
+                </form>
+              {% else %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="is_completed">
+                  <button type="submit" class="btn btn-danger">Mark In Progress</button>
+                </form>
               {% endif %}
+            {% else %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="assign">
+                <button type="submit" class="btn btn-danger">Assign</button>
+              </form>
+            {% endif %}
             <p class="lead text-white mt-3">
               Story Points: {{ task.story_points }}
             </p>

@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Prefetch, Q
@@ -50,33 +47,6 @@ def toggle_assign_to_team(request, pk):
     employee.save()
 
     return HttpResponseRedirect(reverse_lazy("dashboard:team-detail", args=[pk]))
-
-
-@login_required
-def toggle_assign_to_task(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    employee = Employee.objects.get(id=request.user.id)
-    if task in employee.tasks_assigned.all():
-        task.assigned_to.remove(employee)
-    else:
-        task.assigned_to.add(employee)
-    return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[pk]))
-
-
-@login_required
-def toggle_mark_done_task(request, pk):
-    task = get_object_or_404(Task, id=pk)
-    employee = Employee.objects.get(id=request.user.id)
-    team = employee.team
-    if employee in task.assigned_to.all():
-        if task.is_completed:
-            task.is_completed = False
-        else:
-            task.is_completed = True
-        task.save()
-    if employee.team:
-        team.calculate_productivity()
-    return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[pk]))
 
 
 class EmployeeLoginView(LoginView):
@@ -221,6 +191,19 @@ class TaskListView(LoginRequiredMixin, generic.ListView):
 class TaskDetailView(LoginRequiredMixin, generic.DetailView):
     model = Task
     queryset = Task.objects.prefetch_related("assigned_to")
+
+    def post(self, request, *args, **kwargs):
+        task = self.get_object()
+        if "assign" in request.POST:
+            if request.user in task.assigned_to.all():
+                task.assigned_to.remove(request.user)
+            else:
+                task.assigned_to.add(request.user)
+        if "is_completed" in request.POST:
+            task.is_completed = not task.is_completed
+            task.save()
+
+        return HttpResponseRedirect(reverse_lazy("dashboard:task-detail", args=[task.pk]))
 
 
 class TaskCreateView(LoginRequiredMixin, generic.CreateView):
