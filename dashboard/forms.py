@@ -65,9 +65,10 @@ class EmployeeCreateForm(UserCreationForm):
     team = forms.ModelChoiceField(
         label="Team",
         queryset=Team.objects.all(),
+        required=False,
         widget=forms.Select(
             attrs={
-                "class": "form-control"}
+                "class": "form-control"},
         )
     )
 
