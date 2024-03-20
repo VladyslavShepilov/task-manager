@@ -25,11 +25,11 @@ packagemanager deploy awesome-project -s server.com -u username -p password
 
 ## Features
 
-What's all the bells and whistles this project can perform?
-* What's the main functionality
-* You can also do another thing
-* If you get really randy, you can even do this
+* Authentication for Users
+* Admin panel for managing teams and employees
+* Managing tasks though website interface
+* Productivity tracker
 
 
 ## Demo
-
+![Website Interface](demo.png)
