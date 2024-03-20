@@ -117,4 +117,4 @@ AUTH_USER_MODEL = "dashboard.Employee"
 
 LOGIN_REDIRECT_URL = "dashboard:index"
 
-LOGOUT_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/accounts/login"
