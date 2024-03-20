@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
 
-ALLOWED_HOSTS = ["127.0.0.1", "https://task-manager-ii5h.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "task-manager-ii5h.onrender.com"]
 
 INTERNAL_IPS = []
 
