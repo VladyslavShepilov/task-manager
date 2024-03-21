@@ -6,6 +6,10 @@ Django, Python 3.11
 ## Link
 https://task-manager-ii5h.onrender.com
 
+## Credentials
+Username: user3
+Password: SUr2!@#$_123
+
 ## Installing / Getting started
 
 Run the code below at shell console
