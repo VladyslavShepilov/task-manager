@@ -18,7 +18,7 @@ from .views import (
 app_name = "dashboard"
 
 urlpatterns = [
-    path("", index, name="index/"),
+    path("", index, name="index"),
     path("employee/<int:pk>/", EmployeeDetailView.as_view(), name="employee-detail"),
     path("employee/list/", EmployeeListView.as_view(), name="employee-list"),
     path("team/list/", TeamListView.as_view(), name="team-list"),
